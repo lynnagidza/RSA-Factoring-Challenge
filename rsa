@@ -1,7 +1,39 @@
 #!/usr/bin/python3
 """RSA factoring problem"""
 import sys
-import sympy
+import math
+from sympy import isprime
+
+
+def pollards_rho(n):
+    """Pollard's rho algorithm for factoring"""
+    if isprime(n):
+        return n
+
+    def f(x):
+        return (x ** 2 + 1) % n
+
+    x = 2
+    y = 2
+    d = 1
+
+    while d == 1:
+        x = f(x)
+        y = f(f(y))
+        d = math.gcd(abs(x - y), n)
+
+    return d
+
+
+def factorize(n):
+    """Factorize n"""
+    factors = []
+    while not isprime(n):
+        factor = pollards_rho(n)
+        factors.append(factor)
+        n = n // factor
+    factors.append(n)
+    return factors
 
 
 def main():
@@ -11,12 +43,8 @@ def main():
         return
 
     n = int(sys.argv[1])
-    factors = list(sympy.primerange(2, int(n ** 0.5) + 1))
-    for factor in factors:
-        if n % factor == 0:
-            print(f"{n} = {factor} * {n // factor}")
-            return
-    print(f"{n} is prime.")
+    factors = factorize(n)
+    print(f"{n} = {' * '.join(map(str, factors))}")
 
 
 if __name__ == '__main__':
